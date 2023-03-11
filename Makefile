@@ -582,7 +582,129 @@ ARCH ?= $(SUBARCH)
 
 ########### PLATFORM OPS  ##########################
 # Import platform assigned KSRC and CROSS_COMPILE
-include $(wildcard $(DRV_PATH)/platform/*.mk)
+# include $(wildcard $(DRV_PATH)/platform/*.mk)
+# aml_s905
+ifeq ($(CONFIG_PLATFORM_AML_S905), y)
+EXTRA_CFLAGS += -DCONFIG_PLATFORM_AML_S905
+EXTRA_CFLAGS += -DCONFIG_LITTLE_ENDIAN
+EXTRA_CFLAGS += -DCONFIG_IOCTL_CFG80211 -DRTW_USE_CFG80211_STA_EVENT
+EXTRA_CFLAGS += -DCONFIG_RADIO_WORK
+EXTRA_CFLAGS += -DCONFIG_CONCURRENT_MODE
+# default setting for Android
+# config CONFIG_RTW_ANDROID in main Makefile
+ARCH ?= arm64
+CROSS_COMPILE ?= /home/Jimmy/amlogic_905x4+8852AS/skw-rtk/cross_compile_toolchain/gcc-linaro-6.3.1-2017.02-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
+ifndef KSRC
+KSRC := /home/Jimmy/amlogic_905x4+8852AS/skw-rtk/kernel
+# To locate output files in a separate directory.
+KSRC += O=/home/Jimmy/amlogic_905x4+8852AS/skw-rtk/kernel_obj
+endif
+ifeq ($(CONFIG_PCI_HCI), y)
+EXTRA_CFLAGS += -DCONFIG_PLATFORM_OPS
+_PLATFORM_FILES := platform/platform_linux_pc_pci.o
+OBJS += $(_PLATFORM_FILES)
+endif
+ifeq ($(CONFIG_RTL8852A), y)
+ifeq ($(CONFIG_SDIO_HCI), y)
+CONFIG_RTL8852AS ?= m
+USER_MODULE_NAME := 8852as
+endif
+ifeq ($(CONFIG_PCI_HCI), y)
+CONFIG_RTL8852AE ?= m
+USER_MODULE_NAME := 8852ae
+endif
+endif
+endif
+
+# android_intel_x86
+ifeq ($(CONFIG_PLATFORM_ANDROID_INTEL_X86), y)
+EXTRA_CFLAGS += -DCONFIG_PLATFORM_ANDROID_INTEL_X86
+EXTRA_CFLAGS += -DCONFIG_PLATFORM_INTEL_BYT
+EXTRA_CFLAGS += -DCONFIG_LITTLE_ENDIAN -DCONFIG_PLATFORM_ANDROID
+EXTRA_CFLAGS += -DCONFIG_CONCURRENT_MODE
+EXTRA_CFLAGS += -DCONFIG_IOCTL_CFG80211 -DRTW_USE_CFG80211_STA_EVENT
+EXTRA_CFLAGS += -DCONFIG_SKIP_SIGNAL_SCALE_MAPPING
+ifeq ($(CONFIG_SDIO_HCI), y)
+EXTRA_CFLAGS += -DCONFIG_RESUME_IN_WORKQUEUE
+endif
+endif
+
+#android_x86
+ifeq ($(CONFIG_PLATFORM_ANDROID_X86), y)
+EXTRA_CFLAGS += -DCONFIG_LITTLE_ENDIAN
+SUBARCH := $(shell uname -m | sed -e s/i.86/i386/)
+ARCH := $(SUBARCH)
+CROSS_COMPILE := /media/DATA-2/android-x86/ics-x86_20120130/prebuilt/linux-x86/toolchain/i686-unknown-linux-gnu-4.2.1/bin/i686-unknown-linux-gnu-
+KSRC := /media/DATA-2/android-x86/ics-x86_20120130/out/target/product/generic_x86/obj/kernel
+MODULE_NAME :=wlan
+endif
+
+#arm_1319
+ifeq ($(CONFIG_PLATFORM_RTK1319), y)
+EXTRA_CFLAGS += -DCONFIG_LITTLE_ENDIAN
+EXTRA_CFLAGS += -DCONFIG_IOCTL_CFG80211 -DRTW_USE_CFG80211_STA_EVENT
+EXTRA_CFLAGS += -DCONFIG_RADIO_WORK
+EXTRA_CFLAGS += -DCONFIG_CONCURRENT_MODE
+EXTRA_CFLAGS += -DRTK_1319_PLATFORM -DCONFIG_RF4CE_COEXIST
+ARCH ?= arm
+# For Android 10
+#CROSS_COMPILE :=/sweethome/zhenrc/Workshop/1619/atv-9.0/phoenix/toolchain/asdk-6.4.1-a53-EL-4.9-g2.26-a32nut-180831/bin/arm-linux-gnueabi-
+#KSRC :=/sweethome/zhenrc/Workshop/1619/atv-9.0/hydra/linux-kernel-1319
+# For TV image
+CROSS_COMPILE :=/sweethome/zhenrc/Workshop/1619/atv-9.0/phoenix/toolchain/asdk-6.4.1-a53-EL-4.9-g2.26-a32nut-180831/bin/arm-linux-gnueabi-
+KSRC := /sweethome/zhenrc/Workshop/1319/q_tv_kernel_ax
+ifeq ($(CONFIG_PCI_HCI), y)
+EXTRA_CFLAGS += -DCONFIG_PLATFORM_OPS
+_PLATFORM_FILES := platform/platform_linux_pc_pci.o
+OBJS += $(_PLATFORM_FILES)
+endif
+endif
+
+#arm_sunxi
+ifeq ($(CONFIG_PLATFORM_ARM_SUNxI), y)
+EXTRA_CFLAGS += -DCONFIG_LITTLE_ENDIAN
+EXTRA_CFLAGS += -DCONFIG_PLATFORM_ARM_SUNxI
+# default setting for Android 4.1, 4.2
+EXTRA_CFLAGS += -DCONFIG_CONCURRENT_MODE
+EXTRA_CFLAGS += -DCONFIG_IOCTL_CFG80211 -DRTW_USE_CFG80211_STA_EVENT
+EXTRA_CFLAGS += -DCONFIG_PLATFORM_OPS
+ifeq ($(CONFIG_USB_HCI), y)
+EXTRA_CFLAGS += -DCONFIG_USE_USB_BUFFER_ALLOC_TX
+_PLATFORM_FILES += platform/platform_ARM_SUNxI_usb.o
+endif
+ifeq ($(CONFIG_SDIO_HCI), y)
+# default setting for A10-EVB mmc0
+#EXTRA_CFLAGS += -DCONFIG_WITS_EVB_V13
+_PLATFORM_FILES += platform/platform_ARM_SUNxI_sdio.o
+endif
+ARCH := arm
+#CROSS_COMPILE := arm-none-linux-gnueabi-
+CROSS_COMPILE=/home/android_sdk/Allwinner/a10/android-jb42/lichee-jb42/buildroot/output/external-toolchain/bin/arm-none-linux-gnueabi-
+KVER  := 3.0.8
+#KSRC:= ../lichee/linux-3.0/
+KSRC=/home/android_sdk/Allwinner/a10/android-jb42/lichee-jb42/linux-3.0
+endif
+
+#i386_pc
+ifeq ($(CONFIG_PLATFORM_I386_PC), y)
+EXTRA_CFLAGS += -DCONFIG_LITTLE_ENDIAN
+EXTRA_CFLAGS += -DCONFIG_IOCTL_CFG80211 -DRTW_USE_CFG80211_STA_EVENT
+EXTRA_CFLAGS += -DCONFIG_RADIO_WORK
+#EXTRA_CFLAGS += -DCONFIG_CONCURRENT_MODE
+SUBARCH := $(shell uname -m | sed -e s/i.86/i386/)
+ARCH ?= $(SUBARCH)
+CROSS_COMPILE ?=
+KVER  := $(shell uname -r)
+KSRC := /lib/modules/$(KVER)/build
+MODDESTDIR := /lib/modules/$(KVER)/kernel/drivers/net/wireless/
+INSTALL_PREFIX :=
+STAGINGMODDIR := /lib/modules/$(KVER)/kernel/drivers/staging
+ifeq ($(CONFIG_PCI_HCI), y)
+EXTRA_CFLAGS += -DCONFIG_PLATFORM_OPS
+_PLATFORM_FILES := platform/platform_linux_pc_pci.o
+OBJS += $(_PLATFORM_FILES)
+endif
+endif
 
 # Import platform specific compile options
 EXTRA_CFLAGS += -I$(src)/platform
@@ -877,6 +999,7 @@ EXTRA_CFLAGS += -I$(phl_path_d1)
 include $(phl_path_d1)/hal.mk
 
 
+
 obj-$(CONFIG_RTL8852AU) := $(MODULE_NAME).o
 obj-$(CPTCFG_RTL8852AE) := $(MODULE_NAME).o
 $(MODULE_NAME)-y = $(OBJS)
@@ -889,7 +1012,7 @@ all: modules
 
 modules:
 	#rm -f .symvers.$(MODULE_NAME)
-
+	echo $(phl_path_d1)
 	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) -C $(KSRC) M=$(shell pwd)  modules
 
 	#cp Module.symvers .symvers.$(MODULE_NAME)
