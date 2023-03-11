@@ -620,14 +620,15 @@ endif
 
 include $(src)/phl/phl.mk
 
-
 obj-$(CONFIG_RTL8852AU) := $(MODULE_NAME).o
 obj-$(CPTCFG_RTL8852AE) := $(MODULE_NAME).o
 $(MODULE_NAME)-y = $(OBJS)
 
 else
-
+obj-m := $(MODULE_NAME).o
 export CONFIG_RTL8852AU = m
+
+
 
 all: modules
 
