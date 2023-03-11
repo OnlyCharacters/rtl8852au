@@ -620,35 +620,73 @@ endif
 
 include $(src)/phl/phl.mk
 
-ifneq ($(CONFIG_RTL8852AU),)
 obj-$(CONFIG_RTL8852AU) := $(MODULE_NAME).o
+obj-$(CPTCFG_RTL8852AE) := $(MODULE_NAME).o
+$(MODULE_NAME)-y = $(OBJS)
+
 else
+# export CONFIG_RTL8852AU = m
 obj-m := $(MODULE_NAME).o
 
 all: modules
 
 modules:
+	#rm -f .symvers.$(MODULE_NAME)
+
 	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) -C $(KSRC) M=$(shell pwd)  modules
+
+	#cp Module.symvers .symvers.$(MODULE_NAME)
 
 strip:
 	$(CROSS_COMPILE)strip $(MODULE_NAME).ko --strip-unneeded
+
 
 install:
 	install -p -m 644 $(MODULE_NAME).ko  $(MODDESTDIR)
 	/sbin/depmod -a ${KVER}
 
+# install:
+# 	@mkdir -p $(MODDESTDIR)realtek/rtw89/
+# 	install -p -m 644 $(MODULE_NAME).ko  $(MODDESTDIR)realtek/rtw89/
+# 	/sbin/depmod -a ${KVER}
+
 uninstall:
 	rm -f $(MODDESTDIR)/$(MODULE_NAME).ko
 	/sbin/depmod -a ${KVER}
 
-config_r:
-	@echo "make config"
-	/bin/bash script/Configure script/config.in
+# uninstall:
+# 	rm -f $(MODDESTDIR)realtek/rtw89/$(MODULE_NAME).ko
+# 	/sbin/depmod -a ${KVER}
 
 
+#.PHONY: modules clean sign
 .PHONY: modules clean
+
+# sign:
+# 	@openssl req -new -x509 -newkey rsa:2048 -keyout MOK.priv -outform DER -out MOK.der -nodes -days 36500 -subj "/CN=Custom MOK/"
+# 	@mokutil --import MOK.der
+# 	@$(KSRC)/scripts/sign-file sha256 MOK.priv MOK.der 8852au.ko
+
+# sign-install: all sign install
 
 clean:
 	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) -C $(KSRC) M=$(shell pwd) clean
+
+# clean:
+# 	#$(MAKE) -C $(KSRC) M=$(shell pwd) clean
+# 	cd $(HAL) ; rm -fr */*/*/*/*.mod.c */*/*/*/*.mod */*/*/*/*.o */*/*/*/.*.cmd */*/*/*/*.ko
+# 	cd $(HAL) ; rm -fr */*/*/*.mod.c */*/*/*.mod */*/*/*.o */*/*/.*.cmd */*/*/*.ko
+# 	cd $(HAL) ; rm -fr */*/*.mod.c */*/*.mod */*/*.o */*/.*.cmd */*/*.ko
+# 	cd $(HAL) ; rm -fr */*.mod.c */*.mod */*.o */.*.cmd */*.ko
+# 	cd $(HAL) ; rm -fr *.mod.c *.mod *.o .*.cmd *.ko
+# 	cd core ; rm -fr */*.mod.c */*.mod */*.o */.*.cmd */*.ko
+# 	cd core ; rm -fr *.mod.c *.mod *.o .*.cmd *.ko
+# 	cd os_dep/linux ; rm -fr *.mod.c *.mod *.o .*.cmd *.ko
+# 	cd os_dep/linux/hwsim ; rm -fr *.mod.c *.mod *.o .*.cmd *.ko
+# 	cd os_dep ; rm -fr *.mod.c *.mod *.o .*.cmd *.ko
+# 	cd platform ; rm -fr *.mod.c *.mod *.o .*.cmd *.ko
+# 	rm -fr Module.symvers ; rm -fr Module.markers ; rm -fr modules.order
+# 	rm -fr *.mod.c *.mod *.o .*.cmd *.ko *~
+# 	rm -fr .tmp_versions
 endif
 
