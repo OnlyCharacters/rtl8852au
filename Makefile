@@ -625,7 +625,7 @@ obj-$(CPTCFG_RTL8852AE) := $(MODULE_NAME).o
 $(MODULE_NAME)-y = $(OBJS)
 
 else
-# export CONFIG_RTL8852AU = m
+export CONFIG_RTL8852AU = m
 obj-m := $(MODULE_NAME).o
 
 all: modules
