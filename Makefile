@@ -597,7 +597,148 @@ endif
 
 ifneq ($(KERNELRELEASE),)
 ########### COMMON #################################
-include $(src)/common.mk
+########### OS_DEP PATH  #################################
+_OS_INTFS_FILES :=	os_dep/osdep_service.o \
+			os_dep/osdep_service_linux.o \
+			os_dep/linux/rtw_cfg.o \
+			os_dep/linux/os_intfs.o \
+			os_dep/linux/ioctl_linux.o \
+			os_dep/linux/xmit_linux.o \
+			os_dep/linux/mlme_linux.o \
+			os_dep/linux/recv_linux.o \
+			os_dep/linux/ioctl_cfg80211.o \
+			os_dep/linux/rtw_cfgvendor.o \
+			os_dep/linux/wifi_regd.o \
+			os_dep/linux/rtw_android.o \
+			os_dep/linux/rtw_proc.o \
+			os_dep/linux/nlrtw.o \
+			os_dep/linux/rtw_rhashtable.o
+
+ifeq ($(CONFIG_HWSIM), y)
+	_OS_INTFS_FILES += os_dep/linux/hwsim/medium/local.o
+	_OS_INTFS_FILES += os_dep/linux/hwsim/medium/sock_udp.o
+	_OS_INTFS_FILES += os_dep/linux/hwsim/medium/loopback.o
+	_OS_INTFS_FILES += os_dep/linux/hwsim/core.o
+	_OS_INTFS_FILES += os_dep/linux/hwsim/txrx.o
+	_OS_INTFS_FILES += os_dep/linux/hwsim/netdev.o
+	_OS_INTFS_FILES += os_dep/linux/hwsim/cfg80211.o
+	_OS_INTFS_FILES += os_dep/linux/hwsim/platform_dev.o
+
+	_OS_INTFS_FILES += os_dep/linux/$(HCI_NAME)_ops_linux.o
+else
+	_OS_INTFS_FILES += os_dep/linux/$(HCI_NAME)_intf.o
+	_OS_INTFS_FILES += os_dep/linux/$(HCI_NAME)_ops_linux.o
+endif
+
+ifeq ($(CONFIG_MP_INCLUDED), y)
+_OS_INTFS_FILES += os_dep/linux/ioctl_mp.o \
+		os_dep/linux/ioctl_efuse.o
+endif
+
+ifeq ($(CONFIG_SDIO_HCI), y)
+_OS_INTFS_FILES += os_dep/linux/custom_gpio_linux.o
+endif
+
+ifeq ($(CONFIG_GSPI_HCI), y)
+_OS_INTFS_FILES += os_dep/linux/custom_gpio_linux.o
+endif
+
+########### CORE PATH  #################################
+_CORE_FILES :=	core/rtw_cmd.o \
+		core/rtw_security.o \
+		core/rtw_debug.o \
+		core/rtw_io.o \
+		core/rtw_ioctl_query.o \
+		core/rtw_ioctl_set.o \
+		core/rtw_ieee80211.o \
+		core/rtw_mlme.o \
+		core/rtw_mlme_ext.o \
+		core/rtw_sec_cam.o \
+		core/rtw_mi.o \
+		core/rtw_wlan_util.o \
+		core/rtw_vht.o \
+		core/rtw_he.o \
+		core/rtw_pwrctrl.o \
+		core/rtw_rf.o \
+		core/rtw_chplan.o \
+		core/monitor/rtw_radiotap.o \
+		core/rtw_recv.o \
+		core/rtw_recv_shortcut.o \
+		core/rtw_sta_mgt.o \
+		core/rtw_ap.o \
+		core/wds/rtw_wds.o \
+		core/mesh/rtw_mesh.o \
+		core/mesh/rtw_mesh_pathtbl.o \
+		core/mesh/rtw_mesh_hwmp.o \
+		core/rtw_xmit.o	\
+		core/rtw_xmit_shortcut.o \
+		core/rtw_p2p.o \
+		core/rtw_tdls.o \
+		core/rtw_br_ext.o \
+		core/rtw_sreset.o \
+		core/rtw_rm.o \
+		core/rtw_rm_fsm.o \
+		core/rtw_rm_util.o \
+		core/rtw_trx.o \
+		core/rtw_beamforming.o \
+		core/rtw_scan.o
+		#core/efuse/rtw_efuse.o
+
+_CORE_FILES +=	core/rtw_phl.o \
+		core/rtw_phl_cmd.o
+
+EXTRA_CFLAGS += -I$(src)/core/crypto
+_CORE_FILES += core/crypto/aes-internal.o \
+		core/crypto/aes-internal-enc.o \
+		core/crypto/aes-gcm.o \
+		core/crypto/aes-ccm.o \
+		core/crypto/aes-omac1.o \
+		core/crypto/ccmp.o \
+		core/crypto/gcmp.o \
+		core/crypto/aes-siv.o \
+		core/crypto/aes-ctr.o \
+		core/crypto/sha256-internal.o \
+		core/crypto/sha256.o \
+		core/crypto/sha256-prf.o \
+		core/crypto/rtw_crypto_wrap.o \
+		core/rtw_swcrypto.o		
+
+ifeq ($(CONFIG_WOWLAN), y)
+_CORE_FILES += core/rtw_wow.o
+endif
+
+ifeq ($(CONFIG_PCI_HCI), y)
+_CORE_FILES += core/rtw_trx_pci.o
+endif
+
+ifeq ($(CONFIG_USB_HCI), y)
+_CORE_FILES += core/rtw_trx_usb.o
+endif
+
+ifeq ($(CONFIG_SDIO_HCI), y)
+_CORE_FILES += core/rtw_sdio.o
+_CORE_FILES += core/rtw_trx_sdio.o
+endif
+
+ifeq ($(CONFIG_MP_INCLUDED), y)
+_CORE_FILES += core/rtw_mp.o
+endif
+
+ifeq ($(CONFIG_WAPI_SUPPORT), y)
+_CORE_FILES += core/rtw_wapi.o	\
+					core/rtw_wapi_sms4.o
+endif
+
+ifeq ($(CONFIG_BTC), y)
+_CORE_FILES += core/rtw_btc.o
+endif
+
+ifeq ($(CONFIG_RTW_MBO), y)
+_CORE_FILES +=	core/rtw_mbo.o core/rtw_ft.o core/rtw_wnm.o
+endif
+
+OBJS += $(_OS_INTFS_FILES) $(_CORE_FILES)
+
 
 EXTRA_CFLAGS += -DPHL_PLATFORM_LINUX
 EXTRA_CFLAGS += -DCONFIG_PHL_ARCH
@@ -618,7 +759,123 @@ ifeq ($(DIRTY_FOR_WORK), y)
 EXTRA_CFLAGS += -DDIRTY_FOR_WORK
 endif
 
-include $(src)/phl/phl.mk
+########### COMMON PATH  #################################
+ifeq ($(CONFIG_HWSIM), y)
+	HAL = hal_sim
+else
+	ifeq ($(CONFIG_WIFI_6), y)
+	HAL = hal_g6
+	else
+	HAL = hal
+	endif
+endif
+
+ifeq ($(CONFIG_PHL_ARCH), y)
+phl_path := phl/
+phl_path_d1 := $(src)/phl/$(HAL)
+else
+phl_path :=
+phl_path_d1 := $(src)/$(HAL)
+endif
+
+_PHL_FILES := $(phl_path)phl_init.o \
+			$(phl_path)phl_debug.o \
+			$(phl_path)phl_tx.o \
+			$(phl_path)phl_rx.o \
+			$(phl_path)phl_rx_agg.o \
+			$(phl_path)phl_api_drv.o \
+			$(phl_path)phl_role.o \
+			$(phl_path)phl_sta.o \
+			$(phl_path)phl_mr.o \
+			$(phl_path)phl_sec.o \
+			$(phl_path)phl_chan.o \
+			$(phl_path)phl_sw_cap.o \
+			$(phl_path)phl_util.o \
+			$(phl_path)phl_pkt_ofld.o \
+			$(phl_path)phl_connect.o \
+			$(phl_path)phl_chan_info.o \
+			$(phl_path)phl_wow.o\
+			$(phl_path)phl_dm.o \
+			$(phl_path)phl_chnlplan.o \
+			$(phl_path)phl_country.o \
+			$(phl_path)phl_chnlplan_6g.o \
+			$(phl_path)phl_regulation.o \
+			$(phl_path)phl_regulation_6g.o \
+			$(phl_path)phl_led.o \
+			$(phl_path)phl_trx_mit.o \
+			$(phl_path)phl_acs.o \
+			$(phl_path)phl_mcc.o \
+			$(phl_path)phl_ecsa.o \
+			$(phl_path)test/phl_dbg_cmd.o \
+			$(phl_path)test/phl_ps_dbg_cmd.o \
+			$(phl_path)phl_msg_hub.o \
+			$(phl_path)phl_sound.o \
+			$(phl_path)phl_twt.o \
+			$(phl_path)phl_notify.o \
+			$(phl_path)phl_sound_cmd.o \
+			$(phl_path)phl_p2pps.o \
+			$(phl_path)phl_ps.o \
+			$(phl_path)phl_thermal.o
+
+ifeq ($(CONFIG_FSM), y)
+_PHL_FILES += $(phl_path)phl_fsm.o \
+						$(phl_path)phl_cmd_fsm.o \
+						$(phl_path)phl_cmd_job.o \
+						$(phl_path)phl_ser_fsm.o \
+						$(phl_path)phl_btc_fsm.o \
+						$(phl_path)phl_scan_fsm.o \
+						$(phl_path)phl_sound_fsm.o
+endif
+
+_PHL_FILES += $(phl_path)phl_cmd_dispatch_engine.o\
+						$(phl_path)phl_cmd_dispatcher.o\
+						$(phl_path)phl_cmd_dispr_controller.o \
+						$(phl_path)phl_cmd_ser.o \
+						$(phl_path)phl_cmd_general.o \
+						$(phl_path)phl_cmd_scan.o \
+						$(phl_path)phl_cmd_btc.o \
+						$(phl_path)phl_sound_cmd.o \
+						$(phl_path)phl_cmd_ps.o \
+						$(phl_path)phl_watchdog.o
+
+ifeq ($(CONFIG_PCI_HCI), y)
+_PHL_FILES += $(phl_path)hci/phl_trx_pcie.o
+endif
+ifeq ($(CONFIG_USB_HCI), y)
+_PHL_FILES += $(phl_path)hci/phl_trx_usb.o
+endif
+ifeq ($(CONFIG_SDIO_HCI), y)
+_PHL_FILES += $(phl_path)hci/phl_trx_sdio.o
+endif
+
+ifeq ($(CONFIG_PHL_CUSTOM_FEATURE), y)
+_PHL_FILES += $(phl_path)custom/phl_custom.o
+ifeq ($(CONFIG_PHL_CUSTOM_FEATURE_FB), y)
+_PHL_FILES += $(phl_path)custom/phl_custom_fb.o
+endif
+endif
+
+ifeq ($(CONFIG_PHL_TEST_SUITE), y)
+_PHL_FILES += $(phl_path)test/trx_test.o
+_PHL_FILES += $(phl_path)test/test_module.o
+_PHL_FILES += $(phl_path)test/cmd_disp_test.o
+_PHL_FILES += $(phl_path)test/mp/phl_test_mp.o
+_PHL_FILES += $(phl_path)test/mp/phl_test_mp_config.o
+_PHL_FILES += $(phl_path)test/mp/phl_test_mp_tx.o
+_PHL_FILES += $(phl_path)test/mp/phl_test_mp_rx.o
+_PHL_FILES += $(phl_path)test/mp/phl_test_mp_reg.o
+_PHL_FILES += $(phl_path)test/mp/phl_test_mp_efuse.o
+_PHL_FILES += $(phl_path)test/mp/phl_test_mp_txpwr.o
+_PHL_FILES += $(phl_path)test/mp/phl_test_mp_cal.o
+_PHL_FILES += $(phl_path)test/verify/phl_test_verify.o
+_PHL_FILES += $(phl_path)test/verify/dbcc/phl_test_dbcc.o
+endif
+
+OBJS += $(_PHL_FILES)
+
+EXTRA_CFLAGS += -I$(phl_path_d1)
+include $(phl_path_d1)/hal.mk
+
 
 obj-$(CONFIG_RTL8852AU) := $(MODULE_NAME).o
 obj-$(CPTCFG_RTL8852AE) := $(MODULE_NAME).o
