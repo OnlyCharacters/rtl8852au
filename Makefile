@@ -651,7 +651,11 @@ uninstall:
 	/sbin/depmod -a ${KVER}
 
 
-.PHONY: modules clean sign
+#.PHONY: modules clean sign
+.PHONY: modules clean
+
+clean:
+	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) -C $(KSRC) M=$(shell pwd) clean
 
 sign:
 	@openssl req -new -x509 -newkey rsa:2048 -keyout MOK.priv -outform DER -out MOK.der -nodes -days 36500 -subj "/CN=Custom MOK/"
@@ -660,21 +664,21 @@ sign:
 
 sign-install: all sign install
 
-clean:
+#clean:
 	#$(MAKE) -C $(KSRC) M=$(shell pwd) clean
-	cd $(HAL) ; rm -fr */*/*/*/*.mod.c */*/*/*/*.mod */*/*/*/*.o */*/*/*/.*.cmd */*/*/*/*.ko
-	cd $(HAL) ; rm -fr */*/*/*.mod.c */*/*/*.mod */*/*/*.o */*/*/.*.cmd */*/*/*.ko
-	cd $(HAL) ; rm -fr */*/*.mod.c */*/*.mod */*/*.o */*/.*.cmd */*/*.ko
-	cd $(HAL) ; rm -fr */*.mod.c */*.mod */*.o */.*.cmd */*.ko
-	cd $(HAL) ; rm -fr *.mod.c *.mod *.o .*.cmd *.ko
-	cd core ; rm -fr */*.mod.c */*.mod */*.o */.*.cmd */*.ko
-	cd core ; rm -fr *.mod.c *.mod *.o .*.cmd *.ko
-	cd os_dep/linux ; rm -fr *.mod.c *.mod *.o .*.cmd *.ko
-	cd os_dep/linux/hwsim ; rm -fr *.mod.c *.mod *.o .*.cmd *.ko
-	cd os_dep ; rm -fr *.mod.c *.mod *.o .*.cmd *.ko
-	cd platform ; rm -fr *.mod.c *.mod *.o .*.cmd *.ko
-	rm -fr Module.symvers ; rm -fr Module.markers ; rm -fr modules.order
-	rm -fr *.mod.c *.mod *.o .*.cmd *.ko *~
-	rm -fr .tmp_versions
+	#cd $(HAL) ; rm -fr */*/*/*/*.mod.c */*/*/*/*.mod */*/*/*/*.o */*/*/*/.*.cmd */*/*/*/*.ko
+	#cd $(HAL) ; rm -fr */*/*/*.mod.c */*/*/*.mod */*/*/*.o */*/*/.*.cmd */*/*/*.ko
+	#cd $(HAL) ; rm -fr */*/*.mod.c */*/*.mod */*/*.o */*/.*.cmd */*/*.ko
+	#cd $(HAL) ; rm -fr */*.mod.c */*.mod */*.o */.*.cmd */*.ko
+	#cd $(HAL) ; rm -fr *.mod.c *.mod *.o .*.cmd *.ko
+	#cd core ; rm -fr */*.mod.c */*.mod */*.o */.*.cmd */*.ko
+	#cd core ; rm -fr *.mod.c *.mod *.o .*.cmd *.ko
+	#cd os_dep/linux ; rm -fr *.mod.c *.mod *.o .*.cmd *.ko
+	#cd os_dep/linux/hwsim ; rm -fr *.mod.c *.mod *.o .*.cmd *.ko
+	#cd os_dep ; rm -fr *.mod.c *.mod *.o .*.cmd *.ko
+	#cd platform ; rm -fr *.mod.c *.mod *.o .*.cmd *.ko
+	#rm -fr Module.symvers ; rm -fr Module.markers ; rm -fr modules.order
+	#rm -fr *.mod.c *.mod *.o .*.cmd *.ko *~
+	#rm -fr .tmp_versions
 endif
 
